@@ -1,0 +1,25 @@
+{%extends "layout.html"%}
+
+{%block title%}
+  Flack
+{%endblock%}
+
+{%block heading%}
+  <h1>Welcome to Flack</h1>
+{%endblock%}
+{%block body%}
+  <h1 id='user-tag'>Hola desconocido</h1>
+  <ul id='channels'>
+    {%for k in current_channels%}
+      <li><a href="" class="channel-link" data-page={{k}}>{{k}}</a></li>
+    {%endfor%}
+  </ul>
+  <!-- <form class="" action=""> -->
+    <input id="name" type="text" name="" value="">
+    <input id="btn" type="submit">
+  <!-- </form> -->
+
+    <input id="channel" type="text" name="" value="">
+    <input id="add-channel" type="submit">
+  <p id="messages"></p>
+{%endblock%}
