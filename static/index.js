@@ -42,10 +42,20 @@ document.addEventListener('DOMContentLoaded', () =>
         const response = request.responseText;
         document.querySelector('#messages').innerHTML = response;
         localStorage.setItem('channel', `${name}`)
+
+        //HTML5 states
+        history.pushState({'title': `Flack::${name}`, 'text': response}, name, name);
       };
       request.send();
       //alert(`Load: ${name}`);
     }
+
+    window.onpopstate = e =>
+    {
+      const data = e.state;
+      document.title = data.title;
+      document.querySelector('#messages').innerHTML = data.text;
+    };
 
     socket.on('already created', data =>
     {
