@@ -7,9 +7,15 @@ document.addEventListener('DOMContentLoaded', () =>
       {
         document.querySelector('#add-channel').onclick = () =>
         {
-          console.log('clicked... waiting for emition');
+          //console.log('clicked... waiting for emition');
+          console.log('OOOOOOOOOOOOKKKKKKKKKKKKKKk');
           const channel_name = document.querySelector('#channel').value;
           socket.emit('create channel', {'channel': channel_name});
+        };
+
+        document.querySelector('#post-message').onclick = () =>
+        {
+          console.log('post a message');
         };
       }
     );
@@ -37,25 +43,26 @@ document.addEventListener('DOMContentLoaded', () =>
     {
       const request = new XMLHttpRequest();
       request.open('GET', `/${name}`);
+
       request.onload = () =>
       {
         const response = request.responseText;
         document.querySelector('#messages').innerHTML = response;
-        localStorage.setItem('channel', `${name}`)
+        localStorage.setItem('channel', `${name}`);
 
         //HTML5 states
-        history.pushState({'title': `Flack::${name}`, 'text': response}, name, name);
+        //history.pushState({'title': `Flack::${name}`, 'text': response}, name, name);
       };
       request.send();
       //alert(`Load: ${name}`);
     }
 
-    window.onpopstate = e =>
+    /*window.onpopstate = e =>
     {
       const data = e.state;
       document.title = data.title;
       document.querySelector('#messages').innerHTML = data.text;
-    };
+    };*/
 
     socket.on('already created', data =>
     {
