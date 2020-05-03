@@ -4,7 +4,7 @@ import requests
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO, emit
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
@@ -27,5 +27,21 @@ def create_channel(data):
 
 @app.route('/<string:name>')
 def channel(name):
-    print(f'name: {name}')
-    return name
+    if not name in channels:
+        return jsonify({'success': False})
+    else:
+        print(f'name: {name}')
+        return jsonify({'success': True, 'name': name, 'messages': channels[name]})
+
+@socketio.on('post message')
+def post_message(data):
+    print('Dentro de post message')
+    print(f'data[channel]: {data["channel"]}')
+    print(f'data[user]: {data["user"]}')
+    print(f'data[message]: {data["message"]}')
+    print(f'channels: {channels}')
+    print(f'channels[{data["channel"]}]: {channels[data["channel"]]}')
+    channels[data["channel"]].append((data["user"], data["datetime"], data["message"]))
+    print(channels)
+
+    emit('new message', {'channel': data["channel"], 'message': data["message"], 'user': data["user"], 'datetime': data["datetime"]}, broadcast = True)

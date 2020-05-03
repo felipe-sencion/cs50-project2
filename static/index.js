@@ -7,8 +7,7 @@ document.addEventListener('DOMContentLoaded', () =>
       {
         document.querySelector('#add-channel').onclick = () =>
         {
-          //console.log('clicked... waiting for emition');
-          console.log('OOOOOOOOOOOOKKKKKKKKKKKKKKk');
+          console.log('clicked... waiting for emition');
           const channel_name = document.querySelector('#channel').value;
           socket.emit('create channel', {'channel': channel_name});
         };
@@ -16,6 +15,14 @@ document.addEventListener('DOMContentLoaded', () =>
         document.querySelector('#post-message').onclick = () =>
         {
           console.log('post a message');
+          const message = document.querySelector('#message-input').value;
+          const channel = localStorage.getItem('channel');
+          const datetime = new Date();
+
+          socket.emit('post message', {'channel': `${channel}`,
+          'message': `${message}`, 'user': `${localStorage.getItem('userName')}`,
+          'datetime': `${datetime.getDate()}/${datetime.getMonth()+1}/${datetime.getFullYear()}`});
+          console.log('emited');
         };
       }
     );
@@ -46,27 +53,54 @@ document.addEventListener('DOMContentLoaded', () =>
 
       request.onload = () =>
       {
-        const response = request.responseText;
-        document.querySelector('#messages').innerHTML = response;
-        localStorage.setItem('channel', `${name}`);
+        const response = JSON.parse(request.responseText);
+        if (response.success)
+        {
+          document.querySelector('#messages').innerHTML = response.name;
+          localStorage.setItem('channel', `${name}`);
+          document.title = `Flack::${name}`;
+          console.log(`mensaje: ${response.messages[0][0]}  Un total de ${response.messages.length} mensajes`);
+          for (var i = 0; i < response.messages.length; i++)
+          {
+            alert(`${response.messages[i]}`);
+            const post = document.createElement('div');
+            post.className = 'post';
+            post.innerHTML = `${response.messages[i][1]} - ${response.messages[i][0]} <br> ${response.messages[i][2]}`;
+            document.querySelector('#posts').append(post);
+          }
 
-        //HTML5 states
-        //history.pushState({'title': `Flack::${name}`, 'text': response}, name, name);
+          //HTML5 states
+          history.pushState({'title': `Flack::${name}`, 'text': response.name}, name, name);
+        }
+        else
+        {
+          document.querySelector('#messages').innerHTML = 'There was an error';
+          document.title = 'Error';
+        }
       };
       request.send();
       //alert(`Load: ${name}`);
     }
 
-    /*window.onpopstate = e =>
+    window.onpopstate = e =>
     {
       const data = e.state;
       document.title = data.title;
       document.querySelector('#messages').innerHTML = data.text;
-    };*/
+    };
 
     socket.on('already created', data =>
     {
       alert(`${data.message}`);
+    }
+    );
+
+    socket.on('new message', data =>
+    {
+      const post = document.createElement('div');
+      post.className = 'post';
+      post.innerHTML = `${data.datetime} - ${data.user} <br> ${data.message}`;
+      document.querySelector('#posts').append(post);
     }
     );
     //Add event to prevoiusly stored channels
