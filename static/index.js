@@ -7,41 +7,63 @@ document.addEventListener('DOMContentLoaded', () =>
       {
         document.querySelector('#add-channel').onclick = () =>
         {
-          console.log('clicked... waiting for emition');
           const channel_name = document.querySelector('#channel').value;
           socket.emit('create channel', {'channel': channel_name});
+          document.querySelector('#channel').value = '';
+          document.querySelector('#add-channel').disabled = true;
         };
 
         document.querySelector('#post-message').onclick = () =>
         {
-          console.log('post a message');
           const message = document.querySelector('#message-input').value;
           const channel = localStorage.getItem('channel');
           const datetime = new Date();
 
           socket.emit('post message', {'channel': `${channel}`,
           'message': `${message}`, 'user': `${localStorage.getItem('userName')}`,
-          'datetime': `${datetime.getDate()}/${datetime.getMonth()+1}/${datetime.getFullYear()}`});
-          console.log('emited');
+          'datetime': `${datetime.getDate()}/${datetime.getMonth()+1}/${datetime.getFullYear()} - ${datetime.getHours()}:${datetime.getMinutes()}:${datetime.getSeconds()}`});
+          document.querySelector('#message-input').value = '';
+          document.querySelector('#post-message').disabled = true;
         };
       }
     );
 
     socket.on('new channel', data =>
     {
-      const li = document.createElement('li');
-      //li.innerHTML = `Channel created: ${data.channel_name}`;
       const a = document.createElement('a')
-      a.class = 'channel-link';
-      a.setAttribute('data-page', `${data.channel_name}`);
+      a.className = "nav-link";
+      a.setAttribute("data-page", `${data.channel_name}`);
+      a.setAttribute("data-toggle", 'pill');
+      a.setAttribute("role", "tab");
+      a.setAttribute("aria-controls", `v-pills-${data.channel_name}`);
+      a.setAttribute("aria-selected", "true");
+      a.setAttribute("id",`v-pills-${data.channel_name}-tab`);
       a.innerHTML = `${data.channel_name}`;
       a.href = '';
-      li.appendChild(a);
-      document.querySelector('#channels').append(li);
+      if (document.querySelector("#v-pills-tab").childElementCount > 1)
+      {
+        var current = document.getElementsByClassName("active");
+        current[0].className = current[0].className.replace(" active", "");
+      }
+      a.className += ' active';
+      document.querySelector("#v-pills-tab").appendChild(a);
+
       a.onclick = () =>
       {
+        const m = document.querySelector('#v-pills-tabContent');
+        m.innerHTML = "";
+        var current = document.getElementsByClassName("active");
+        current[0].className = current[0].className.replace(" active", "");
+        a.className += ' active';
+        a.style.animationIterationCount = 1;
+
         load_page(a.dataset.page);
         return false;
+      }
+
+      if(localStorage.getItem('userName'))
+      {
+        show_widgets();
       }
     }
     );
@@ -56,39 +78,29 @@ document.addEventListener('DOMContentLoaded', () =>
         const response = JSON.parse(request.responseText);
         if (response.success)
         {
-          document.querySelector('#messages').innerHTML = response.name;
           localStorage.setItem('channel', `${name}`);
           document.title = `Flack::${name}`;
-          console.log(`mensaje: ${response.messages[0][0]}  Un total de ${response.messages.length} mensajes`);
           for (var i = 0; i < response.messages.length; i++)
           {
-            alert(`${response.messages[i]}`);
             const post = document.createElement('div');
-            post.className = 'post';
+            post.className = 'tab-pane fade show active';
+            post.setAttribute('role', 'tabpanel');
+            post.setAttribute('aria-labelledby', `v-pills-${localStorage.getItem('channel')}-tab`);
             post.innerHTML = `${response.messages[i][1]} - ${response.messages[i][0]} <br> ${response.messages[i][2]}`;
-            document.querySelector('#posts').append(post);
+            if (response.messages[i][0] == localStorage.getItem('userName'))
+            {
+              post.style.textAlign = 'right';
+            }
+            document.querySelector('.tab-content').append(post);
           }
-
-          //HTML5 states
-          history.pushState({'title': `Flack::${name}`, 'text': response.name}, name, name);
         }
         else
         {
-          document.querySelector('#messages').innerHTML = 'There was an error';
           document.title = 'Error';
         }
       };
       request.send();
-      //alert(`Load: ${name}`);
     }
-
-    window.onpopstate = e =>
-    {
-      const data = e.state;
-      document.title = data.title;
-      document.querySelector('#messages').innerHTML = data.text;
-    };
-
     socket.on('already created', data =>
     {
       alert(`${data.message}`);
@@ -98,45 +110,131 @@ document.addEventListener('DOMContentLoaded', () =>
     socket.on('new message', data =>
     {
       const post = document.createElement('div');
-      post.className = 'post';
+      post.className = 'tab-pane fade show active';
+      post.setAttribute('role', 'tabpanel');
+      post.setAttribute('aria-labelledby', `"v-pills-${localStorage.getItem('channel')}-tab"`);
       post.innerHTML = `${data.datetime} - ${data.user} <br> ${data.message}`;
-      document.querySelector('#posts').append(post);
+      if (data.user == localStorage.getItem('userName'))
+      {
+        post.style.textAlign = 'right';
+      }
+      if (document.querySelector('#v-pills-tabContent').childElementCount >= 100)
+      {
+        document.querySelector('#v-pills-tabContent').firstChild.remove();
+      }
+      if (data.channel != localStorage.getItem('channel'))
+      {
+        document.querySelector(`#v-pills-${data.channel}-tab`).style.animationIterationCount = 'infinite';
+        document.querySelector(`#v-pills-${data.channel}-tab`).style.animationPlayState = 'running';
+      }
+      else
+      {
+        document.querySelector('.tab-content').append(post);
+      }
     }
     );
-    //Add event to prevoiusly stored channels
-    document.querySelectorAll('.channel-link').forEach(link =>
+    document.querySelectorAll('.nav-link').forEach(link =>
     {
       link.onclick = () =>
       {
-          load_page(link.dataset.page);
-          return false;
+        const m = document.querySelector('#v-pills-tabContent');
+        m.innerHTML = "";
+        var current = document.getElementsByClassName("active");
+        current[0].className = current[0].className.replace(" active", "");
+        link.className += ' active';
+        link.style.animationIterationCount = 1;
+        load_page(link.dataset.page);
+        return false;
       };
     }
     );
 
+    function show_widgets()
+    {
+      document.getElementById('name').style.display = 'none';
+      document.getElementById('btn').style.display = 'none';
+      document.getElementById('message-input').style.display = 'block';
+      document.getElementById('post-message').style.display = 'block';
+      document.getElementById('channel').style.display = 'block';
+      document.getElementById('add-channel').style.display = 'block';
+      document.getElementById('v-pills-tab').style.display = 'block';
+      document.getElementById('v-pills-tabContent').style.display = 'block';
+    }
+
     if(!localStorage.getItem('userName'))
     {
-      localStorage.setItem('userName', '')
-      alert('No hay')
+      localStorage.setItem('userName', '');
+      document.getElementById('message-input').style.display = 'none';
+      document.getElementById('post-message').style.display = 'none';
+      document.getElementById('channel').style.display = 'none';
+      document.getElementById('add-channel').style.display = 'none';
+      document.getElementById('v-pills-tab').style.display = 'none';
+      document.getElementById('v-pills-tabContent').style.display = 'none';
     }
     else
     {
-      alert(`Sí hay ${localStorage.getItem('userName')}`)
-      document.querySelector('#user-tag').innerHTML = `Hola ${localStorage.getItem('userName')}`;
+      show_widgets();
+      document.querySelector('#user-tag').innerHTML = `Hi ${localStorage.getItem('userName')}`;
     }
     if (!localStorage.getItem('channel'))
     {
-      localStorage.setItem('channel', '')
+      localStorage.setItem('channel', '');
+      document.getElementById('v-pills-tab').style.display = 'none';
+      document.getElementById('v-pills-tabContent').style.display = 'none';
+      document.getElementById('message-input').style.display = 'none';
+      document.getElementById('post-message').style.display = 'none';
     }
     else
     {
-      load_page(localStorage.getItem('channel'));
+      if(localStorage.getItem('userName'))
+      {
+        show_widgets();
+        load_page(localStorage.getItem('channel'));
+      }
     }
     document.querySelector('#btn').onclick = () =>
     {
       const userName = document.querySelector('#name').value;
       localStorage.setItem('userName', userName);
-      document.querySelector('#user-tag').innerHTML = `Hola ${userName}`;
+      document.querySelector('#user-tag').innerHTML = `Hi ${userName}`;
+
+      show_widgets();
+      document.querySelector('#name').value = '';
+      document.querySelector('#btn').disabled = true;
     }
+
+    document.querySelector('#name').onkeyup = () =>
+    {
+      if (document.querySelector('#name').value.length > 0)
+      {
+        document.querySelector('#btn').disabled = false;
+      }
+      else
+      {
+        document.querySelector('#btn').disabled = true;
+      }
+    };
+    document.querySelector('#channel').onkeyup = () =>
+    {
+      if (document.querySelector('#channel').value.length > 0)
+      {
+        document.querySelector('#add-channel').disabled = false;
+      }
+      else
+      {
+        document.querySelector('#add-channel').disabled = true;
+      }
+    };
+    document.querySelector('#message-input').onkeyup = () =>
+    {
+      if (document.querySelector('#message-input').value.length > 0)
+      {
+        document.querySelector('#post-message').disabled = false;
+      }
+      else
+      {
+        document.querySelector('#post-message').disabled = true;
+      }
+    };
   }
 );

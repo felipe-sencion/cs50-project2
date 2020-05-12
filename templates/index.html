@@ -5,27 +5,49 @@
 {%endblock%}
 
 {%block heading%}
-  <h1>Welcome to Flack</h1>
+  <h1 id=flack-title>this is Flack</h1>
 {%endblock%}
 {%block body%}
-  <h1 id='user-tag'>Hola desconocido</h1>
-  <ul id='channels'>
-    {%for k in current_channels%}
-      <li><a href="" class="channel-link" data-page={{k}}>{{k}}</a></li>
-    {%endfor%}
-  </ul>
-
-  <input id="name" type="text" name="" value="">
-  <input id="btn" type="submit">
-
-  <input id="channel" type="text" name="" value="">
-  <input id="add-channel" type="submit">
-  <div id="posts">
-    <ul id="channel-messages">
-    </ul>
-    <p>Div para mensajes</p>
+  <h3 id='user-tag'></h3>
+  <div class="row justify-content-end">
+    <div class="col-6">
+      <div class="input-group mb-3">
+        <input id="name" type="text" class="form-control" placeholder="username" aria-label="username" aria-describedby="btn">
+        <div class="input-group-append">
+          <button class="btn btn-outline-success" type="button" id="btn" disabled='true'>Join in</button>
+        </div>
+      </div>
+    </div>
   </div>
-  <p id="messages"></p>
-  <input id="message-input" type="text" name="" value="" placeholder="Write a message">
-  <input id="post-message" type="submit">
+  <div class="row">
+    <div class="col-3">
+      <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+        <h3>Channels</h3>
+        {%for i in range(current_channels|length)%}
+          {%if i == 0%}
+            <a class="nav-link active" id="v-pills-{{current_channels[i]}}-tab" data-toggle="pill" href="" role="tab" aria-controls="v-pills-{{current_channels[i]}}" aria-selected="true" data-page="{{current_channels[i]}}">{{current_channels[i]}}</a>
+          {%else%}
+            <a class="nav-link" id="v-pills-{{current_channels[i]}}-tab" data-toggle="pill" href="" role="tab" aria-controls="v-pills-{{current_channels[i]}}" aria-selected="true" data-page="{{current_channels[i]}}">{{current_channels[i]}}</a>
+          {%endif%}
+        {%endfor%}
+      </div>
+      <div class="input-group mb-3">
+        <input id="channel" type="text" class="form-control" placeholder="channel name" aria-label="channel name" aria-describedby="add-channel">
+        <div class="input-group-append">
+          <button class="btn btn-outline-success" type="button" id="add-channel" disabled='true'>Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-9">
+      <div class="tab-content" id="v-pills-tabContent">
+    </div>
+    <div class="input-group mb-3">
+      <input id="message-input" type="text" class="form-control" placeholder="write a message" aria-label="write a message" aria-describedby="post-message">
+      <div class="input-group-append">
+        <button class="btn btn-outline-success" type="button" id="post-message" disabled='true'>Add</button>
+      </div>
+    </div>
+  </div>
+
+
 {%endblock%}

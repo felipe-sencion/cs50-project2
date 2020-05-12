@@ -1,0 +1,46 @@
+#flack-title
+{
+  text-align: center;
+}
+
+.tab-pane
+{
+  background-color: #ccddff;
+  border-radius: 12px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 4px;
+}
+
+#user-tag
+{
+  text-align: right;
+}
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(3deg);
+  }
+  50% {
+    transform: rotate(-3deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+.nav-link {
+  animation-name: rotate;
+  animation-duration: 1.5s;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
+  animation-play-state: paused;
+}
+
+#v-pills-tabContent {
+  overflow: auto;
+  height: 400px;
+}
+
+/*# sourceMappingURL=style.css.map */
